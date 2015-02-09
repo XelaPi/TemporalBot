@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="background">#000</color>
+	<color name="text_active">#fff</color>
+	<color name="text_inactive">#aaa</color>
+	<color name="text_completed">#0c0</color>
+	<color name="text_incomplete">#c00</color>
+</resources>

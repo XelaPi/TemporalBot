@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.piguy.Temporal_Bot.LevelButton
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		xmlns:tools="http://schemas.android.com/tools"
+		android:background="@drawable/button"
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		tools:context=".MenuActivity"
+		android:clickable="true">
+
+	<com.piguy.Temporal_Bot.LockedScrollView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:scrollbars="none">
+
+		<RelativeLayout
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent">
+
+			<LinearLayout
+					android:id="@+id/wrapper_layout"
+					android:orientation="vertical"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content">
+
+				<LinearLayout
+						android:id="@+id/level_button_non_expand_wrapper"
+						android:orientation="horizontal"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:gravity="center"
+						android:padding="@dimen/button_spacing">
+
+					<TextView
+							style="@style/text.large"
+							android:id="@+id/level_name"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/level_name"/>
+
+					<LinearLayout
+							android:orientation="horizontal"
+							android:layout_width="fill_parent"
+							android:layout_height="wrap_content"
+							android:gravity="right">
+
+						<ImageView
+								android:id="@+id/completed_pos_0"
+								android:layout_width="@dimen/star_size"
+								android:layout_height="@dimen/star_size"
+								android:contentDescription="@string/star_completion"/>
+
+						<ImageView
+								android:id="@+id/time_pos_0"
+								android:layout_width="@dimen/star_size"
+								android:layout_height="@dimen/star_size"
+								android:contentDescription="@string/star_time"/>
+
+						<ImageView
+								android:id="@+id/robots_pos_0"
+								android:layout_width="@dimen/star_size"
+								android:layout_height="@dimen/star_size"
+								android:contentDescription="@string/star_robots"/>
+
+					</LinearLayout>
+
+				</LinearLayout>
+
+				<LinearLayout
+						android:id="@+id/level_button_expand_wrapper"
+						android:layout_width="fill_parent"
+						android:layout_height="wrap_content"
+						android:orientation="vertical"
+						android:gravity="center"
+						android:padding="@dimen/board_padding">
+
+					<LinearLayout
+							android:layout_width="fill_parent"
+							android:layout_height="wrap_content"
+							android:orientation="horizontal"
+							android:baselineAligned="false">
+
+						<LinearLayout
+								android:orientation="vertical"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:gravity="center">
+
+							<com.piguy.Temporal_Bot.GamePreview
+									android:id="@+id/level_thumbnail"
+									android:layout_width="@dimen/thumbnail_width"
+									android:layout_height="@dimen/thumbnail_height"/>
+
+						</LinearLayout>
+
+						<LinearLayout
+								android:orientation="vertical"
+								android:layout_width="fill_parent"
+								android:layout_height="fill_parent"
+								android:padding="@dimen/button_spacing">
+
+							<RelativeLayout
+									android:orientation="horizontal"
+									android:layout_width="fill_parent"
+									android:layout_height="0dp"
+									android:layout_weight="1">
+
+								<ImageView
+										android:id="@+id/completed_pos_1"
+										android:layout_width="@dimen/star_size"
+										android:layout_height="@dimen/star_size"
+										android:contentDescription="@string/star_completion"
+										android:layout_marginRight="@dimen/button_spacing"
+										android:layout_alignParentLeft="true"
+										android:layout_marginLeft="0dp"
+										android:layout_alignParentTop="true"
+										android:layout_marginTop="0dp"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_completed_title"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:text="@string/star_completion"
+										android:layout_alignParentTop="true"
+										android:layout_toRightOf="@+id/completed_pos_1"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_completed"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:singleLine="false"
+										android:layout_below="@+id/text_completed_title"
+										android:layout_alignLeft="@+id/text_completed_title"/>
+
+							</RelativeLayout>
+
+							<RelativeLayout
+									android:orientation="horizontal"
+									android:layout_width="fill_parent"
+									android:layout_height="0dp"
+									android:layout_weight="1">
+
+								<ImageView
+										android:id="@+id/time_pos_1"
+										android:layout_width="@dimen/star_size"
+										android:layout_height="@dimen/star_size"
+										android:contentDescription="@string/star_time"
+										android:layout_marginRight="@dimen/button_spacing"
+										android:layout_alignParentLeft="true"
+										android:layout_marginLeft="0dp"
+										android:layout_alignParentTop="true"
+										android:layout_marginTop="0dp"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_time_title"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:text="@string/star_time"
+										android:layout_alignParentTop="true"
+										android:layout_toRightOf="@id/time_pos_1"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_time"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:layout_below="@id/text_time_title"
+										android:layout_alignLeft="@id/text_time_title"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_target_time"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:layout_alignTop="@+id/text_time"
+										android:layout_alignParentRight="true"/>
+
+							</RelativeLayout>
+
+							<RelativeLayout
+									android:orientation="horizontal"
+									android:layout_width="fill_parent"
+									android:layout_height="0dp"
+									android:layout_weight="1">
+
+								<ImageView
+										android:id="@+id/robots_pos_1"
+										android:layout_width="@dimen/star_size"
+										android:layout_height="@dimen/star_size"
+										android:contentDescription="@string/star_robots"
+										android:layout_marginRight="@dimen/button_spacing"
+										android:layout_alignParentLeft="true"
+										android:layout_marginLeft="0dp"
+										android:layout_alignParentTop="true"
+										android:layout_marginTop="0dp"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_robots_title"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:text="@string/star_robots"
+										android:layout_alignParentTop="true"
+										android:layout_toRightOf="@id/robots_pos_1"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_robots"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:layout_below="@id/text_robots_title"
+										android:layout_alignLeft="@id/text_robots_title"/>
+
+								<TextView
+										style="@style/text.small"
+										android:id="@+id/text_target_robots"
+										android:layout_width="wrap_content"
+										android:layout_height="wrap_content"
+										android:layout_below="@+id/text_robots_title"
+										android:layout_alignParentRight="true"/>
+
+							</RelativeLayout>
+
+						</LinearLayout>
+
+					</LinearLayout>
+					<Button
+							style="@style/text.large.button"
+							android:id="@+id/level_button"
+							android:background="@drawable/button"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/start_level"
+							android:paddingLeft="@dimen/button_text_padding"
+							android:paddingRight="@dimen/button_text_padding"/>
+
+				</LinearLayout>
+
+			</LinearLayout>
+
+			<ImageView
+					android:id="@+id/completed_image_view"
+					android:background="@drawable/star_incomplete"
+					android:layout_width="@dimen/star_size"
+					android:layout_height="@dimen/star_size"
+					android:contentDescription="@string/star_completion"/>
+
+			<ImageView
+					android:id="@+id/time_image_view"
+					android:background="@drawable/star_incomplete"
+					android:layout_width="@dimen/star_size"
+					android:layout_height="@dimen/star_size"
+					android:contentDescription="@string/star_time"/>
+
+			<ImageView
+					android:id="@+id/robots_image_view"
+					android:background="@drawable/star_incomplete"
+					android:layout_width="@dimen/star_size"
+					android:layout_height="@dimen/star_size"
+					android:contentDescription="@string/star_robots"/>
+
+		</RelativeLayout>
+
+	</com.piguy.Temporal_Bot.LockedScrollView>
+
+</com.piguy.Temporal_Bot.LevelButton>
