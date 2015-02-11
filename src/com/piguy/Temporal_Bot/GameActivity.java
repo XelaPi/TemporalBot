@@ -15,7 +15,7 @@ import java.util.TimerTask;
  *
  * @author Alex Vanyo
  */
-public class GameActivity extends Activity implements GestureDetector.OnGestureListener {
+public class GameActivity extends Activity implements GestureDetector.OnGestureListener, GameStateListener {
 
 	private GameView gameView;
 	private ToggleButton resetTimeButton;
@@ -26,11 +26,6 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	private GestureDetector gestureDetector;
 
 	private Level level;
-	private Timer incrementTimer;
-	private final Object runningLock = new Object();
-	private boolean running;
-	private final Object elapsedTimeLock = new Object();
-	private long elapsedTime;
 
 	/**
 	 * Initializes the activity. It collects the level info from the previous activity, and initializes the game
@@ -52,7 +47,7 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 
 		resetTimeButton = (ToggleButton) this.findViewById(R.id.reset_time_button);
 		gameView = (GameView) this.findViewById(R.id.game_view);
-		gameView.board.setLevel(level.getLevelString());
+		gameView.board.setLevel(level);
 
 		this.reset();
 
@@ -79,80 +74,49 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 */
 	private void reset() {
 		gameView.board.reset();
-
-		synchronized (runningLock) {
-			running = true;
-		}
-
-		synchronized (elapsedTimeLock) {
-			elapsedTime = 0;
-		}
 	}
 
 	/**
 	 * Called whenever the reset time button is pressed. Resets the game view and the timer
 	 */
 	private void resetTime() {
-		synchronized (elapsedTimeLock) {
-			gameView.board.resetTime(elapsedTime);
-
-			elapsedTime = 0;
-		}
+		gameView.board.resetTime();
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 
-		// Runs an increment timer every period of time to update the board and robots
-		incrementTimer = new Timer("IncrementTimer", false);
-		incrementTimer.scheduleAtFixedRate(new TimerTask() {
-			@Override
-			public void run() {
-				if (running) {
-					synchronized (elapsedTimeLock) {
-						elapsedTime += DELAY_PERIOD;
-
-						if (!gameView.board.haveWon()) {
-							// Update the board with the elapsed time
-							gameView.board.update(elapsedTime);
-
-							// If the game is won, save the score
-							if (gameView.board.haveWon()) {
-								level.updateScore(new Score(level.getID(), true, getTotalElapsedTime(), gameView.board.getRobots().size()));
-
-								LevelDatabaseHelper levelHelper = new LevelDatabaseHelper(getApplicationContext());
-								levelHelper.updateScore(level);
-								levelHelper.close();
-							}
-						} else {
-							// Finish the winning move and end the timer
-							gameView.board.update(elapsedTime);
-						}
-
-						if (gameView.board.haveWon() && !gameView.board.getCurrentRobot().isAnimating()) {
-							pause(null);
-							this.cancel();
-						} else {
-							runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									resetTimeButton.setEnabled(gameView.board.canWarpBackInTime());
-								}
-							});
-						}
-					}
-				}
-			}
-		}, DELAY_PERIOD, DELAY_PERIOD);
+		gameView.board.startTimer();
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
 
-		incrementTimer.cancel();
+		gameView.board.stopTimer();
 	}
+
+	@Override
+	public void gameStart() {
+
+	}
+
+	@Override
+	public void gameUpdate() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				resetTimeButton.setEnabled(gameView.board.canWarpBackInTime());
+			}
+		});
+	}
+
+	@Override
+	public void gameEnd() {
+		pause(null);
+	}
+
 
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
@@ -184,15 +148,11 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 
 		//Log.d(LOG_TAG, xDifference + " : " + yDifference);
 		//Log.d(LOG_TAG, velocityX + " : " + velocityY);
-
-		synchronized (elapsedTimeLock) {
-			if (!gameView.board.haveWon()) {
-				if (Math.abs(xDifference) > Math.abs(yDifference)) {
-					gameView.board.addMoveCommandToCurrent(xDifference > 0 ? Movable.MOVE_RIGHT : Movable.MOVE_LEFT, elapsedTime);
-				} else {
-					gameView.board.addMoveCommandToCurrent(yDifference > 0 ? Movable.MOVE_DOWN : Movable.MOVE_UP, elapsedTime);
-				}
-
+		if (!gameView.board.haveWon()) {
+			if (Math.abs(xDifference) > Math.abs(yDifference)) {
+				gameView.board.addMoveCommandToCurrent(xDifference > 0 ? Movable.MOVE_RIGHT : Movable.MOVE_LEFT);
+			} else {
+				gameView.board.addMoveCommandToCurrent(yDifference > 0 ? Movable.MOVE_DOWN : Movable.MOVE_UP);
 			}
 
 		}
@@ -227,15 +187,13 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 */
 	@Override
 	public void onBackPressed() {
-		synchronized (runningLock) {
-			if (running) {
-				pause(null);
-			} else {
-				if (pauseMenu.getVisibility() == View.VISIBLE) {
-					resume(null);
-				} else if (instructionLayout.getVisibility() == View.VISIBLE) {
-					hideInstruction(null);
-				}
+		if (gameView.board.isRunning()) {
+			pause(null);
+		} else {
+			if (pauseMenu.getVisibility() == View.VISIBLE) {
+				resume(null);
+			} else if (instructionLayout.getVisibility() == View.VISIBLE) {
+				hideInstruction(null);
 			}
 		}
 	}
@@ -257,9 +215,7 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 * @param view view that called this function
 	 */
 	public void pause(View view) {
-		synchronized (runningLock) {
-			this.running = false;
-		}
+		gameView.board.setRunning(false);
 
 		this.runOnUiThread(new Runnable() {
 			@Override
@@ -275,9 +231,7 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 * @param view view that called this function
 	 */
 	public void resume(View view) {
-		synchronized (runningLock) {
-			this.running = true;
-		}
+		gameView.board.setRunning(true);
 
 		this.runOnUiThread(new Runnable() {
 			@Override
@@ -293,9 +247,7 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 * @param instruction instruction string to be shown
 	 */
 	public void showInstruction(final String instruction) {
-		synchronized (runningLock) {
-			this.running = false;
-		}
+		gameView.board.setRunning(false);
 
 		this.runOnUiThread(new Runnable() {
 			@Override
@@ -312,9 +264,7 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 * @param view view that called this function
 	 */
 	public void hideInstruction(View view) {
-		synchronized (runningLock) {
-			this.running = true;
-		}
+		gameView.board.setRunning(true);
 
 		this.runOnUiThread(new Runnable() {
 			@Override
@@ -340,29 +290,10 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 * @param view view that called this function
 	 */
 	public void resetTime(View view) {
-		synchronized (runningLock) {
-			if (running) {
-				resetTime();
-			}
+		if (gameView.board.isRunning()) {
+			resetTime();
 		}
 	}
-
-	/**
-	 * @return the totalElapsedTime from all robot states in milliseconds
-	 */
-	private long getTotalElapsedTime() {
-		long totalElapsedTime = 0;
-		for (Robot robot : gameView.board.getRobots()) {
-			totalElapsedTime += robot.getLastMoveCommand().getExecuteTime();
-		}
-
-		return totalElapsedTime;
-	}
-
-	/**
-	 * Delay for the update thread in milliseconds
-	 */
-	private static final long DELAY_PERIOD = 5;
 
 	private static final String LOG_TAG = "GameActivity";
 }

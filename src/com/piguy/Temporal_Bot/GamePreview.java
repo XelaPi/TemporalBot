@@ -21,8 +21,6 @@ public class GamePreview extends ImageView {
 	public GamePreview(Context context, AttributeSet attrs) {
 		super(context, attrs);
 
-
-
 		this.board = new Board(context);
 
 		this.paint = new Paint();
@@ -34,7 +32,7 @@ public class GamePreview extends ImageView {
 	 * @param level level for the thumbnail
 	 */
 	public void setLevel(Level level) {
-		board.setLevel(level.getLevelString());
+		board.setLevel(level);
 		board.initializeBitmaps(this.getMeasuredWidth(), this.getMeasuredHeight(), paint);
 
 		Bitmap boardBitmap = Bitmap.createBitmap(this.getMeasuredWidth(), this.getMeasuredHeight(), Bitmap.Config.ARGB_8888);

@@ -4,10 +4,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Defines and draws the board, which handles the game logic
@@ -15,6 +12,12 @@ import java.util.Map;
  * @author Alex Vanyo
  */
 public class Board extends ContextWrapper {
+
+	private GameStateListener gameStateListener;
+
+	private long elapsedTime;
+	private Timer incrementTimer;
+	private boolean running;
 
 	private Tile[][] tiles;
 	private ArrayList<Robot> robots;
@@ -30,7 +33,7 @@ public class Board extends ContextWrapper {
 	private Bitmap bitmapBoardFloor;
 	private Bitmap bitmapBoardWalls;
 
-	private String level;
+	private Level level;
 	private int tileNumberX;
 	private int tileNumberY;
 
@@ -49,16 +52,20 @@ public class Board extends ContextWrapper {
 		rotateMatrix = new Matrix();
 	}
 
+	public synchronized void setGameStateListener(GameStateListener gameStateListener) {
+		this.gameStateListener = gameStateListener;
+	}
+
 	/**
 	 * Sets the board for a certain level, by parsing the passed level string. Also resets the non-wall/floor objects.
 	 *
 	 * @param level level string as given by Level.getLevelString()
 	 * @see Board#reset
 	 */
-	public synchronized void setLevel(String level) {
+	public synchronized void setLevel(Level level) {
 		this.level = level;
-		this.tileNumberX = getTileNumberX(level);
-		this.tileNumberY = getTileNumberY(level);
+		this.tileNumberX = getTileNumberX(level.getLevelString());
+		this.tileNumberY = getTileNumberY(level.getLevelString());
 
 		// Initializes the tile array
 		tiles = new Tile[tileNumberY][tileNumberX];
@@ -66,7 +73,7 @@ public class Board extends ContextWrapper {
 		// Initializes the board to be either floor or wall
 		for (int i = 0; i < tileNumberY; i++) {
 			for (int j = 0; j < tileNumberX; j++) {
-				char tile = level.charAt((i * (tileNumberX + 1)) + j);
+				char tile = level.getLevelString().charAt((i * (tileNumberX + 1)) + j);
 				if (Character.isUpperCase(tile)) {
 					tiles[i][j] = new Tile(Tile.TILE_MOVABLE_BOX);
 				} else {
@@ -157,7 +164,7 @@ public class Board extends ContextWrapper {
 		// Parses the level to initialize each special object
 		for (int i = 0; i < tileNumberY; i++) {
 			for (int j = 0; j < tileNumberX; j++) {
-				char tile = level.charAt((i * (tileNumberX + 1)) + j);
+				char tile = level.getLevelString().charAt((i * (tileNumberX + 1)) + j);
 
 				if (BOX_CODES.contains(String.valueOf(Character.toLowerCase(tile)))) {
 					if (Character.isUpperCase(tile)) {
@@ -174,15 +181,62 @@ public class Board extends ContextWrapper {
 		// Resets flag variables
 		canWarpBackInTime = true;
 		won = false;
+		running = true;
+		elapsedTime = 0;
+	}
+
+	public synchronized void startTimer() {
+		// Runs an increment timer every period of time to update the board and robots
+		incrementTimer = new Timer("IncrementTimer", false);
+		incrementTimer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				synchronized (Board.this) {
+					if (running) {
+						elapsedTime += DELAY_PERIOD;
+
+						if (!won) {
+							// Update the board with the elapsed time
+							update();
+
+							// If the game is won, save the score
+							if (won) {
+								level.updateScore(new Score(level.getID(), true, getTotalElapsedTime(), robots.size()));
+
+								LevelDatabaseHelper levelHelper = new LevelDatabaseHelper(getApplicationContext());
+								levelHelper.updateScore(level);
+								levelHelper.close();
+							}
+						} else {
+							// Finish the winning move and end the timer
+							update();
+						}
+
+						if (won && !getCurrentRobot().isAnimating()) {
+							if (gameStateListener != null) {
+								gameStateListener.gameEnd();
+							}
+							this.cancel();
+						} else {
+							if (gameStateListener != null) {
+								gameStateListener.gameUpdate();
+							}
+						}
+					}
+				}
+			}
+		}, DELAY_PERIOD, DELAY_PERIOD);
+	}
+
+	public synchronized void stopTimer() {
+		incrementTimer.cancel();
 	}
 
 	/**
 	 * Called whenever the reset time button is pressed. Resets the game to the initial state, but each robots will redo its moves
-	 *
-	 * @param elapsedTime length of time in milliseconds that the current time state has taken
 	 */
-	public synchronized void resetTime(long elapsedTime) {
-		addMoveCommandToCurrent(Movable.MOVE_BACK_IN_TIME, elapsedTime);
+	public synchronized void resetTime() {
+		addMoveCommandToCurrent(Movable.MOVE_BACK_IN_TIME);
 
 		robots.add(new Robot(getCurrentRobot().getX(), getCurrentRobot().getY(), getCurrentRobot().getDirection(), true));
 
@@ -191,24 +245,23 @@ public class Board extends ContextWrapper {
 		}
 
 		particles.clear();
+
+		elapsedTime = 0;
 	}
 
 	/**
 	 * Adds the command to move to the current robot whenever the user swipes the screen
 	 *
 	 * @param direction direction of the swipe
-	 * @param elapsedTime time in milliseconds that the action occurred
 	 */
-	public synchronized void addMoveCommandToCurrent(int direction, long elapsedTime) {
+	public synchronized void addMoveCommandToCurrent(int direction) {
 		getCurrentRobot().addMoveCommand(new MoveCommand(direction, elapsedTime));
 	}
 
 	/**
 	 * Forms most of the game loop. Each time it is called, every robot updates its command list, particles advance in their state, and test flags are updated
-	 *
-	 * @param elapsedTime amount of time that has elapsed for this game state at this point
 	 */
-	public synchronized void update(long elapsedTime) {
+	public synchronized void update() {
 		if (!won) {
 			// Update robots
 			for (Robot robot : robots) {
@@ -361,16 +414,20 @@ public class Board extends ContextWrapper {
 		// Initializes the bitmap array
 		bitmapArray = new HashMap<String, Bitmap>();
 
+
+
+		boundsBoard = new Rect(0, 0, width, height);
+
 		// Sets the tile size that will be used
 		int drawBorderSize = getResources().getDimensionPixelSize(R.dimen.board_padding);
-		if (width / tileNumberX < height / tileNumberY ) {
-			drawTileSize = (width - drawBorderSize * 2) / tileNumberX;
+		if (boundsBoard.width() / tileNumberX < boundsBoard.height() / tileNumberY ) {
+			drawTileSize = (boundsBoard.width() - drawBorderSize * 2) / tileNumberX;
 		} else {
-			drawTileSize = (height - drawBorderSize * 2) / tileNumberY;
+			drawTileSize = (boundsBoard.height() - drawBorderSize * 2) / tileNumberY;
 		}
 
 		// Initializes a rectangle for less calculations on where to draw
-		boundsBoard = new Rect((width - drawTileSize * tileNumberX) / 2, (height - drawTileSize * tileNumberY) / 2, drawTileSize * tileNumberX, drawTileSize * tileNumberY);
+		boundsBoard.set((width - drawTileSize * tileNumberX) / 2, (height - drawTileSize * tileNumberY) / 2, drawTileSize * tileNumberX, drawTileSize * tileNumberY);
 
 		// Puts each bitmap into a map using labels
 		// Wall bitmaps
@@ -508,7 +565,7 @@ public class Board extends ContextWrapper {
 	 * @return the robot that is currently being controlled
 	 */
 	public synchronized Robot getCurrentRobot() {
-			return robots.get(robots.size() - 1);
+		return robots.get(robots.size() - 1);
 	}
 
 	/**
@@ -523,6 +580,26 @@ public class Board extends ContextWrapper {
 	 */
 	public synchronized boolean canWarpBackInTime() {
 		return canWarpBackInTime && !won;
+	}
+
+	/**
+	 * @return the totalElapsedTime from all robot states in milliseconds
+	 */
+	private synchronized long getTotalElapsedTime() {
+		long totalElapsedTime = 0;
+		for (Robot robot : robots) {
+			totalElapsedTime += robot.getLastMoveCommand().getExecuteTime();
+		}
+
+		return totalElapsedTime;
+	}
+
+	public synchronized boolean isRunning() {
+		return running;
+	}
+
+	public synchronized void setRunning(boolean running) {
+		this.running = running;
 	}
 
 	/**
@@ -561,6 +638,11 @@ public class Board extends ContextWrapper {
 	private static final String BOX_CODES = "a";
 	private static final char WALL_CODE = '1';
 	private static final String ROBOT_CODES = "^>v<";
+
+	/**
+	 * Delay for the update thread in milliseconds
+	 */
+	private static final long DELAY_PERIOD = 5;
 
 	private static final String LOG_TAG = "Board";
 }
