@@ -3,6 +3,8 @@ package com.piguy.Temporal_Bot;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.*;
+import android.graphics.drawable.NinePatchDrawable;
+import android.util.Log;
 
 import java.util.*;
 
@@ -27,11 +29,13 @@ public class Board extends ContextWrapper {
 
 	private boolean canWarpBackInTime;
 	private boolean won;
+	private boolean snapshot;
 
 	private Matrix rotateMatrix;
 	private Map<String, Bitmap> bitmapArray;
 	private Bitmap bitmapBoardFloor;
 	private Bitmap bitmapBoardWalls;
+	private NinePatchDrawable bitmapLevelTimeline;
 
 	private Level level;
 	private int tileNumberX;
@@ -39,6 +43,7 @@ public class Board extends ContextWrapper {
 
 	private int drawTileSize;
 	private Rect boundsBoard;
+	private Rect boundsLevelTimeline;
 
 	public Board(Context context) {
 		super(context);
@@ -62,8 +67,9 @@ public class Board extends ContextWrapper {
 	 * @param level level string as given by Level.getLevelString()
 	 * @see Board#reset
 	 */
-	public synchronized void setLevel(Level level) {
+	public synchronized void setLevel(Level level, boolean snapshot) {
 		this.level = level;
+		this.snapshot = snapshot;
 		this.tileNumberX = getTileNumberX(level.getLevelString());
 		this.tileNumberY = getTileNumberY(level.getLevelString());
 
@@ -331,6 +337,30 @@ public class Board extends ContextWrapper {
 	public synchronized void drawBoard(Canvas canvas, Paint paint) {
 
 		try {
+			long maxElapsedTime = elapsedTime;
+
+			paint.setColor(getResources().getColor(R.color.text_active));
+			paint.setTextSize(getResources().getDimension(R.dimen.rewind_text_size));
+
+			if (!snapshot) {
+				bitmapLevelTimeline.draw(canvas);
+				for (Robot robot : robots) {
+					if (robot.getLastMoveCommand() != null && robot.getLastMoveCommand().getDirection() == Movable.MOVE_BACK_IN_TIME && robot.getLastMoveCommand().getExecuteTime() > maxElapsedTime) {
+						maxElapsedTime = robot.getLastMoveCommand().getExecuteTime();
+					}
+				}
+
+				canvas.drawBitmap(bitmapArray.get(REWIND_ICON + CURRENT),
+						(int) (boundsLevelTimeline.left + 1.0 * elapsedTime / maxElapsedTime * boundsLevelTimeline.width() - bitmapArray.get(REWIND_ICON).getWidth() / 2),
+						boundsLevelTimeline.exactCenterY() - bitmapArray.get(REWIND_ICON + CURRENT).getHeight() / 2,
+						paint);
+
+				canvas.drawText(Score.getTimeMinSec(elapsedTime),
+						(int) (boundsLevelTimeline.left + 1.0 * elapsedTime / maxElapsedTime * boundsLevelTimeline.width() - paint.measureText(Score.getTimeMinSec(elapsedTime)) / 2),
+						boundsLevelTimeline.bottom,
+						paint);
+			}
+
 			// Draw pre-rendered floor
 			canvas.drawBitmap(bitmapBoardFloor, boundsBoard.left, boundsBoard.top, paint);
 
@@ -352,24 +382,37 @@ public class Board extends ContextWrapper {
 			}
 
 			// Draw robots
+
 			for (Robot robot : robots) {
 				if (robot.isVisible()) {
 
-					for (int i = 0; i < THREE_DIMENSIONAL_VALUE / 2; i++) {
+					for (int i = 0; i < (snapshot ? 1 : THREE_DIMENSIONAL_VALUE / 2); i++) {
 						rotateMatrix.reset();
 
-						rotateImage(rotateMatrix, bitmapArray.get(robot.equals(getCurrentRobot()) ? ROBOT_CURRENT : ROBOT), robot.getViewDirection() * 90);
+						rotateImage(rotateMatrix, bitmapArray.get(robot.equals(getCurrentRobot()) ? ROBOT + CURRENT : ROBOT), robot.getViewDirection() * 90);
 						rotateMatrix.postTranslate(boundsBoard.left + robot.getViewX() * drawTileSize - i * THREE_DIMENSIONAL_X_MULTIPLIER + THREE_DIMENSIONAL_VALUE * THREE_DIMENSIONAL_X_MULTIPLIER,
 								boundsBoard.top + robot.getViewY() * drawTileSize - i * THREE_DIMENSIONAL_Y_MULTIPLIER + THREE_DIMENSIONAL_VALUE * THREE_DIMENSIONAL_Y_MULTIPLIER);
-						canvas.drawBitmap(bitmapArray.get(robot.equals(getCurrentRobot()) ? ROBOT_CURRENT : ROBOT), rotateMatrix, paint);
+						canvas.drawBitmap(bitmapArray.get(robot.equals(getCurrentRobot()) ? ROBOT + CURRENT : ROBOT), rotateMatrix, paint);
 					}
+				}
+
+				if (!snapshot && robot.getLastMoveCommand() != null && robot.getLastMoveCommand().getDirection() == Movable.MOVE_BACK_IN_TIME) {
+					canvas.drawBitmap(bitmapArray.get(REWIND_ICON),
+							(int) (boundsLevelTimeline.left + 1.0 * robot.getLastMoveCommand().getExecuteTime() / maxElapsedTime * boundsLevelTimeline.width() - bitmapArray.get(REWIND_ICON).getWidth() / 2),
+							boundsLevelTimeline.exactCenterY() - bitmapArray.get(REWIND_ICON).getHeight() / 2,
+							paint);
+
+					canvas.drawText(Score.getTimeMinSec(robot.getLastMoveCommand().getExecuteTime()),
+							(int) (boundsLevelTimeline.left + 1.0 * robot.getLastMoveCommand().getExecuteTime() / maxElapsedTime * boundsLevelTimeline.width() - paint.measureText(Score.getTimeMinSec(robot.getLastMoveCommand().getExecuteTime())) / 2),
+							boundsLevelTimeline.bottom,
+							paint);
 				}
 			}
 
 			// Draw movable boxes
 			for (MovableBox movableBox : movableBoxes) {
 				if (movableBox.isVisible()) {
-					for (int i = 0; i < THREE_DIMENSIONAL_VALUE / 2; i++) {
+					for (int i = 0; i < (snapshot ? 1 : THREE_DIMENSIONAL_VALUE / 2); i++) {
 						canvas.drawBitmap(bitmapArray.get(MOVABLE_BOX + movableBox.getColor()),
 								boundsBoard.left + movableBox.getViewX() * drawTileSize - i * THREE_DIMENSIONAL_X_MULTIPLIER + THREE_DIMENSIONAL_VALUE * THREE_DIMENSIONAL_X_MULTIPLIER,
 								boundsBoard.top + movableBox.getViewY() * drawTileSize - i * THREE_DIMENSIONAL_Y_MULTIPLIER + THREE_DIMENSIONAL_VALUE * THREE_DIMENSIONAL_Y_MULTIPLIER,
@@ -414,12 +457,19 @@ public class Board extends ContextWrapper {
 		// Initializes the bitmap array
 		bitmapArray = new HashMap<String, Bitmap>();
 
+		if (snapshot) {
+			boundsBoard = new Rect(0, 0, width, height);
+		} else {
+			boundsLevelTimeline = new Rect(getResources().getDimensionPixelSize(R.dimen.rewind_timeline_padding), 0, width - getResources().getDimensionPixelSize(R.dimen.rewind_timeline_padding), getResources().getDimensionPixelSize(R.dimen.rewind_timeline_height));
 
+			bitmapLevelTimeline = (NinePatchDrawable) getResources().getDrawable(R.drawable.level_timeline);
+			bitmapLevelTimeline.setBounds(boundsLevelTimeline);
 
-		boundsBoard = new Rect(0, 0, width, height);
+			boundsBoard = new Rect(0, boundsLevelTimeline.bottom, width, height - boundsLevelTimeline.height());
+		}
 
-		// Sets the tile size that will be used
 		int drawBorderSize = getResources().getDimensionPixelSize(R.dimen.board_padding);
+		// Sets the tile size that will be used
 		if (boundsBoard.width() / tileNumberX < boundsBoard.height() / tileNumberY ) {
 			drawTileSize = (boundsBoard.width() - drawBorderSize * 2) / tileNumberX;
 		} else {
@@ -431,60 +481,63 @@ public class Board extends ContextWrapper {
 
 		// Puts each bitmap into a map using labels
 		// Wall bitmaps
-		bitmapArray.put(Tile.TILE_WALL + Tile.ALONE_LABEL, createScaledBitmap(R.drawable.tile_wall_alone));
+		bitmapArray.put(Tile.TILE_WALL + Tile.ALONE_LABEL, createScaledBitmap(R.drawable.tile_wall_alone, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_wall_endpoint_up));
-		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_wall_endpoint_right));
-		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_wall_endpoint_down));
-		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_wall_endpoint_left));
+		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_wall_endpoint_up, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_wall_endpoint_right, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_wall_endpoint_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.ENDPOINT_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_wall_endpoint_left, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_WALL + Tile.MIDDLE_LABEL + Tile.UP_DOWN, createScaledBitmap(R.drawable.tile_wall_middle_up_down));
-		bitmapArray.put(Tile.TILE_WALL + Tile.MIDDLE_LABEL + Tile.LEFT_RIGHT, createScaledBitmap(R.drawable.tile_wall_middle_left_right));
+		bitmapArray.put(Tile.TILE_WALL + Tile.MIDDLE_LABEL + Tile.UP_DOWN, createScaledBitmap(R.drawable.tile_wall_middle_up_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.MIDDLE_LABEL + Tile.LEFT_RIGHT, createScaledBitmap(R.drawable.tile_wall_middle_left_right, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_wall_corner_up));
-		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_wall_corner_right));
-		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_wall_corner_down));
-		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_wall_corner_left));
+		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_wall_corner_up, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_wall_corner_right, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_wall_corner_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.CORNER_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_wall_corner_left, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_wall_t_up));
-		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_wall_t_right));
-		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_wall_t_down));
-		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_wall_t_left));
+		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_wall_t_up, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_wall_t_right, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_wall_t_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_WALL + Tile.T_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_wall_t_left, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_WALL + Tile.CROSS_LABEL, createScaledBitmap(R.drawable.tile_wall_cross));
+		bitmapArray.put(Tile.TILE_WALL + Tile.CROSS_LABEL, createScaledBitmap(R.drawable.tile_wall_cross, drawTileSize));
 
 		// Floor bitmaps
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.ALONE_LABEL, createScaledBitmap(R.drawable.tile_floor_alone));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.ALONE_LABEL, createScaledBitmap(R.drawable.tile_floor_alone, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_floor_endpoint_up));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_floor_endpoint_right));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_floor_endpoint_down));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_floor_endpoint_left));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_floor_endpoint_up, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_floor_endpoint_right, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_floor_endpoint_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.ENDPOINT_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_floor_endpoint_left, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.MIDDLE_LABEL + Tile.UP_DOWN, createScaledBitmap(R.drawable.tile_floor_middle_up_down));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.MIDDLE_LABEL + Tile.LEFT_RIGHT, createScaledBitmap(R.drawable.tile_floor_middle_left_right));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.MIDDLE_LABEL + Tile.UP_DOWN, createScaledBitmap(R.drawable.tile_floor_middle_up_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.MIDDLE_LABEL + Tile.LEFT_RIGHT, createScaledBitmap(R.drawable.tile_floor_middle_left_right, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_floor_corner_up));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_floor_corner_right));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_floor_corner_down));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_floor_corner_left));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_floor_corner_up, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_floor_corner_right, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_floor_corner_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.CORNER_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_floor_corner_left, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_floor_t_up));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_floor_t_right));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_floor_t_down));
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_floor_t_left));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.UP, createScaledBitmap(R.drawable.tile_floor_t_up, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.RIGHT, createScaledBitmap(R.drawable.tile_floor_t_right, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.DOWN, createScaledBitmap(R.drawable.tile_floor_t_down, drawTileSize));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.T_LABEL + Tile.LEFT, createScaledBitmap(R.drawable.tile_floor_t_left, drawTileSize));
 
-		bitmapArray.put(Tile.TILE_FLOOR + Tile.CROSS_LABEL, createScaledBitmap(R.drawable.tile_floor_cross));
+		bitmapArray.put(Tile.TILE_FLOOR + Tile.CROSS_LABEL, createScaledBitmap(R.drawable.tile_floor_cross, drawTileSize));
 
-		bitmapArray.put(TILE_MOVABLE_BOX_DEACTIVATED + MovableBox.MOVABLE_BOX_COLORS.YELLOW.getID(), createScaledBitmap(R.drawable.tile_movable_box_yellow_deactivated));
-		bitmapArray.put(TILE_MOVABLE_BOX_ACTIVATED + MovableBox.MOVABLE_BOX_COLORS.YELLOW.getID(), createScaledBitmap(R.drawable.tile_movable_box_yellow_activated));
+		bitmapArray.put(TILE_MOVABLE_BOX_DEACTIVATED + MovableBox.MOVABLE_BOX_COLORS.YELLOW.getID(), createScaledBitmap(R.drawable.tile_movable_box_yellow_deactivated, drawTileSize));
+		bitmapArray.put(TILE_MOVABLE_BOX_ACTIVATED + MovableBox.MOVABLE_BOX_COLORS.YELLOW.getID(), createScaledBitmap(R.drawable.tile_movable_box_yellow_activated, drawTileSize));
 
-		bitmapArray.put(ROBOT, createScaledBitmap(R.drawable.robot));
-		bitmapArray.put(ROBOT_CURRENT, createScaledBitmap(R.drawable.robot_current));
+		bitmapArray.put(ROBOT, createScaledBitmap(R.drawable.robot, drawTileSize));
+		bitmapArray.put(ROBOT + CURRENT, createScaledBitmap(R.drawable.robot_current, drawTileSize));
 
-		bitmapArray.put(MOVABLE_BOX + MovableBox.MOVABLE_BOX_COLORS.YELLOW.getID(), createScaledBitmap(R.drawable.movable_box_yellow));
+		bitmapArray.put(MOVABLE_BOX + MovableBox.MOVABLE_BOX_COLORS.YELLOW.getID(), createScaledBitmap(R.drawable.movable_box_yellow, drawTileSize));
 
-		bitmapArray.put(PARTICLE, createScaledBitmap(R.drawable.particle));
+		bitmapArray.put(PARTICLE, createScaledBitmap(R.drawable.particle, drawTileSize));
+
+		bitmapArray.put(REWIND_ICON, createScaledBitmap(R.drawable.rewind_icon, getResources().getDimensionPixelSize(R.dimen.rewind_icon_size)));
+		bitmapArray.put(REWIND_ICON + CURRENT, createScaledBitmap(R.drawable.rewind_icon_current, getResources().getDimensionPixelSize(R.dimen.rewind_icon_size)));
 
 		// Pre draws the floor so that this will only need to be done once
 		bitmapBoardFloor = Bitmap.createBitmap(boundsBoard.left + (tileNumberX * drawTileSize), boundsBoard.top + (tileNumberY * drawTileSize), Bitmap.Config.ARGB_8888);
@@ -505,7 +558,7 @@ public class Board extends ContextWrapper {
 		for (int i = 0; i < tiles.length; i++) {
 			for (int j = 0; j < tiles[i].length; j++) {
 				if (tiles[i][j].getID().equals(Tile.TILE_WALL)) {
-					for (int k = 0; k < THREE_DIMENSIONAL_VALUE; k++) {
+					for (int k = 0; k < (snapshot ? 1 : THREE_DIMENSIONAL_VALUE); k++) {
 						tempCanvas.drawBitmap(bitmapArray.get(tiles[i][j].getDisplayID()),
 								j * drawTileSize - k * THREE_DIMENSIONAL_X_MULTIPLIER + THREE_DIMENSIONAL_VALUE * THREE_DIMENSIONAL_X_MULTIPLIER,
 								i * drawTileSize - k * THREE_DIMENSIONAL_X_MULTIPLIER + THREE_DIMENSIONAL_VALUE * THREE_DIMENSIONAL_Y_MULTIPLIER,
@@ -537,8 +590,8 @@ public class Board extends ContextWrapper {
 	 * @param resourceID resource id that will be passed to the resources
 	 * @return created, scaled bitmap
 	 */
-	private Bitmap createScaledBitmap(int resourceID) {
-		return Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), resourceID), drawTileSize, drawTileSize, false);
+	private Bitmap createScaledBitmap(int resourceID, int size) {
+		return Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), resourceID), size, size, false);
 	}
 
 	/**
@@ -628,11 +681,12 @@ public class Board extends ContextWrapper {
 
 	// Constants for identifying other objects
 	public static final String ROBOT = "ROBOT";
-	public static final String ROBOT_CURRENT = "ROBOT_CURRENT";
+	public static final String CURRENT = "_CURRENT";
 	public static final String TILE_MOVABLE_BOX_DEACTIVATED = "TILE_MOVABLE_BOX_DEACTIVATED_";
 	public static final String TILE_MOVABLE_BOX_ACTIVATED = "TILE_MOVABLE_BOX_ACTIVATED_";
 	public static final String MOVABLE_BOX= "MOVABLE_BOX_";
 	public static final String PARTICLE = "PARTICLE";
+	public static final String REWIND_ICON = "REWIND_ICON";
 
 	// Constants for decoding level strings
 	private static final String BOX_CODES = "a";

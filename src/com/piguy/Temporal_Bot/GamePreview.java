@@ -32,7 +32,7 @@ public class GamePreview extends ImageView {
 	 * @param level level for the thumbnail
 	 */
 	public void setLevel(Level level) {
-		board.setLevel(level);
+		board.setLevel(level, true);
 		board.initializeBitmaps(this.getMeasuredWidth(), this.getMeasuredHeight(), paint);
 
 		Bitmap boardBitmap = Bitmap.createBitmap(this.getMeasuredWidth(), this.getMeasuredHeight(), Bitmap.Config.ARGB_8888);

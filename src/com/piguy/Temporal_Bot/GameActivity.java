@@ -45,7 +45,7 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 
 		resetTimeButton = (ToggleButton) this.findViewById(R.id.reset_time_button);
 		gameView = (GameView) this.findViewById(R.id.game_view);
-		gameView.board.setLevel(level);
+		gameView.board.setLevel(level, false);
 		gameView.board.setGameStateListener(this);
 
 		this.reset();

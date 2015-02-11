@@ -95,7 +95,7 @@ public class Score implements Parcelable {
 		String stringSeconds = "" + ((seconds < 10 && minutes > 0) ? "0" + seconds : seconds);
 		String stringMilliseconds = "" + (milliseconds >= 100 ? milliseconds : "0" + (milliseconds >= 10 ? milliseconds : "0" + milliseconds));
 
-		return (minutes > 0 ? stringMinutes + ":" : "") + (minutes > 0 || seconds > 0 ? stringSeconds + "." : "") + stringMilliseconds;
+		return (minutes > 0 ? stringMinutes + ":" : "") + (minutes > 0 || seconds > 0 ? stringSeconds : "0") + "." + stringMilliseconds;
 	}
 
 	/**
