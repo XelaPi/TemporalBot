@@ -94,6 +94,8 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 		super.onPause();
 
 		gameView.board.stopTimer();
+
+		pause(null);
 	}
 
 	@Override

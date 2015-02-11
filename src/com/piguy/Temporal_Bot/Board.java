@@ -198,7 +198,8 @@ public class Board extends ContextWrapper {
 			@Override
 			public void run() {
 				synchronized (Board.this) {
-					if (running) {
+					if (robots.get(0).getLastMoveCommand() != null && running) {
+
 						elapsedTime += DELAY_PERIOD;
 
 						if (!won) {
@@ -350,15 +351,17 @@ public class Board extends ContextWrapper {
 					}
 				}
 
-				canvas.drawBitmap(bitmapArray.get(REWIND_ICON + CURRENT),
-						(int) (boundsLevelTimeline.left + 1.0 * elapsedTime / maxElapsedTime * boundsLevelTimeline.width() - bitmapArray.get(REWIND_ICON).getWidth() / 2),
-						boundsLevelTimeline.exactCenterY() - bitmapArray.get(REWIND_ICON + CURRENT).getHeight() / 2,
-						paint);
+				if (maxElapsedTime > 0) {
+					canvas.drawBitmap(bitmapArray.get(REWIND_ICON + CURRENT),
+							(int) (boundsLevelTimeline.left + 1.0 * elapsedTime / maxElapsedTime * boundsLevelTimeline.width() - bitmapArray.get(REWIND_ICON).getWidth() / 2),
+							boundsLevelTimeline.exactCenterY() - bitmapArray.get(REWIND_ICON + CURRENT).getHeight() / 2,
+							paint);
 
-				canvas.drawText(Score.getTimeMinSec(elapsedTime),
-						(int) (boundsLevelTimeline.left + 1.0 * elapsedTime / maxElapsedTime * boundsLevelTimeline.width() - paint.measureText(Score.getTimeMinSec(elapsedTime)) / 2),
-						boundsLevelTimeline.bottom,
-						paint);
+					canvas.drawText(Score.getTimeMinSec(elapsedTime),
+							(int) (boundsLevelTimeline.left + 1.0 * elapsedTime / maxElapsedTime * boundsLevelTimeline.width() - paint.measureText(Score.getTimeMinSec(elapsedTime)) / 2),
+							boundsLevelTimeline.bottom,
+							paint);
+				}
 			}
 
 			// Draw pre-rendered floor
