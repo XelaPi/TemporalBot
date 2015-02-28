@@ -189,6 +189,8 @@ public class Board extends ContextWrapper {
 		won = false;
 		running = true;
 		elapsedTime = 0;
+
+		stopTimer();
 	}
 
 	public synchronized void startTimer() {
@@ -219,13 +221,10 @@ public class Board extends ContextWrapper {
 							update();
 						}
 
-						if (won && !getCurrentRobot().isAnimating()) {
-							if (gameStateListener != null) {
+						if (gameStateListener != null) {
+							if (won && !getCurrentRobot().isAnimating()) {
 								gameStateListener.gameEnd();
-							}
-							this.cancel();
-						} else {
-							if (gameStateListener != null) {
+							} else {
 								gameStateListener.gameUpdate();
 							}
 						}
@@ -236,7 +235,9 @@ public class Board extends ContextWrapper {
 	}
 
 	public synchronized void stopTimer() {
-		incrementTimer.cancel();
+		if (incrementTimer != null) {
+			incrementTimer.cancel();
+		}
 	}
 
 	/**
