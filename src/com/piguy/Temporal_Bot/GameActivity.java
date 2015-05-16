@@ -1,6 +1,7 @@
 package com.piguy.Temporal_Bot;
 
 import android.app.Activity;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
@@ -24,6 +25,8 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	private LinearLayout instructionLayout;
 
 	private GestureDetector gestureDetector;
+
+	private MediaPlayer mediaPlayer;
 
 	/**
 	 * Initializes the activity. It collects the level info from the previous activity, and initializes the game
@@ -58,6 +61,10 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 		if (level.hasInstruction() && !level.getScore().getCompleted()) {
 			showInstruction(level.getInstruction());
 		}
+
+		mediaPlayer = MediaPlayer.create(this, R.raw.chee_zee_lab);
+		mediaPlayer.setLooping(true);
+		mediaPlayer.start();
 	}
 
 	@Override
@@ -85,17 +92,31 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	@Override
 	public void onResume() {
 		super.onResume();
-
 		gameView.board.startTimer();
+	}
+
+	@Override
+	public void onRestart() {
+		super.onRestart();
+		mediaPlayer = MediaPlayer.create(this, R.raw.chee_zee_lab);
+		mediaPlayer.setLooping(true);
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
 
+		mediaPlayer.pause();
 		gameView.board.stopTimer();
 
 		pause(null);
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+
+		mediaPlayer.release();
 	}
 
 	@Override
@@ -233,6 +254,8 @@ public class GameActivity extends Activity implements GestureDetector.OnGestureL
 	 */
 	public void resume(View view) {
 		gameView.board.setRunning(true);
+
+		mediaPlayer.start();
 
 		this.runOnUiThread(new Runnable() {
 			@Override

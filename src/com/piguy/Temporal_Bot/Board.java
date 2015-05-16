@@ -190,7 +190,7 @@ public class Board extends ContextWrapper {
 		running = true;
 		elapsedTime = 0;
 
-		stopTimer();
+		//stopTimer();
 	}
 
 	public synchronized void startTimer() {

@@ -1,6 +1,7 @@
 package com.piguy.Temporal_Bot;
 
 import android.app.Activity;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 
@@ -16,6 +17,7 @@ public class LevelMenuActivity extends Activity {
 	public static final String INTENT_EXTRA_LEVEL = "INTENT_EXTRA_LEVEL";
 
 	private LinearLayout levelButtonsLayout;
+	private MediaPlayer mediaPlayer;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -23,15 +25,42 @@ public class LevelMenuActivity extends Activity {
 
 		this.setContentView(R.layout.level_menu);
 
+		mediaPlayer = MediaPlayer.create(this, R.raw.twisted);
+		mediaPlayer.setLooping(true);
+		mediaPlayer.start();
+
 		levelButtonsLayout = (LinearLayout) this.findViewById(R.id.level_buttons_layout);
 
 		addLevelButtons();
 	}
 
 	@Override
+	public void onRestart() {
+		super.onRestart();
+
+		mediaPlayer = MediaPlayer.create(this, R.raw.twisted);
+		mediaPlayer.setLooping(true);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+
+		mediaPlayer.pause();
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+
+		mediaPlayer.release();
+	}
+
+	@Override
 	public void onResume() {
 		super.onResume();
 
+		mediaPlayer.start();
 		updateLevelButtons();
 	}
 
