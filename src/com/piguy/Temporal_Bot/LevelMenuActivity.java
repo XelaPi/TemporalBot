@@ -84,7 +84,7 @@ public class LevelMenuActivity extends Activity {
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							final LevelButton levelButton = (LevelButton) getLayoutInflater().inflate(R.layout.level_button, null);
+							final LevelButton levelButton = (LevelButton) getLayoutInflater().inflate(R.layout.level_button, levelButtonsLayout);
 
 							new Thread(new Runnable() {
 								@Override
