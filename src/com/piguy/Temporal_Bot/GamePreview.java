@@ -14,29 +14,29 @@ import android.widget.ImageView;
  */
 public class GamePreview extends ImageView {
 
-	private Board board;
+    private Board board;
 
-	private Paint paint;
+    private Paint paint;
 
-	public GamePreview(Context context, AttributeSet attrs) {
-		super(context, attrs);
+    public GamePreview(Context context, AttributeSet attrs) {
+        super(context, attrs);
 
-		this.board = new Board(context);
+        this.board = new Board(context);
 
-		this.paint = new Paint();
-	}
+        this.paint = new Paint();
+    }
 
-	/**
-	 * Sets the level that the preview will show and creates/sets its bitmap to be that level
-	 *
-	 * @param level level for the thumbnail
-	 */
-	public void setLevel(Level level) {
-		board.setLevel(level, true);
-		board.initializeBitmaps(this.getMeasuredWidth(), this.getMeasuredHeight(), paint);
+    /**
+     * Sets the level that the preview will show and creates/sets its bitmap to be that level
+     *
+     * @param level level for the thumbnail
+     */
+    public void setLevel(Level level) {
+        board.setLevel(level, true);
+        board.initializeBitmaps(this.getMeasuredWidth(), this.getMeasuredHeight(), paint);
 
-		Bitmap boardBitmap = Bitmap.createBitmap(this.getMeasuredWidth(), this.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-		board.drawBoard(new Canvas(boardBitmap), paint);
-		this.setImageBitmap(boardBitmap);
-	}
+        Bitmap boardBitmap = Bitmap.createBitmap(this.getMeasuredWidth(), this.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        board.drawBoard(new Canvas(boardBitmap), paint);
+        this.setImageBitmap(boardBitmap);
+    }
 }

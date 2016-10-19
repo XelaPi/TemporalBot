@@ -7,35 +7,35 @@ package com.piguy.Temporal_Bot;
  */
 public class MovableBox extends Movable {
 
-	private String color;
+    private String color;
 
-	public MovableBox(int x, int y, int direction, String color) {
-		super(x, y, direction, direction, true);
+    public MovableBox(int x, int y, int direction, String color) {
+        super(x, y, direction, direction, true);
 
-		this.color = color;
-	}
+        this.color = color;
+    }
 
-	/**
-	 * @return the color of the box
-	 */
-	public String getColor() {
-		return color;
-	}
+    /**
+     * @return the color of the box
+     */
+    public String getColor() {
+        return color;
+    }
 
-	// Constants for each type of movable box
-	public static enum MOVABLE_BOX_COLORS {
-		YELLOW ("YELLOW");
+    // Constants for each type of movable box
+    public static enum MOVABLE_BOX_COLORS {
+        YELLOW("YELLOW");
 
-		private String id;
+        private String id;
 
-		MOVABLE_BOX_COLORS(String id) {
-			this.id = id;
-		}
+        MOVABLE_BOX_COLORS(String id) {
+            this.id = id;
+        }
 
-		public String getID() {
-			return id;
-		}
-	}
+        public String getID() {
+            return id;
+        }
+    }
 
-	private static final String LOG_TAG = "MovableBox";
+    private static final String LOG_TAG = "MovableBox";
 }

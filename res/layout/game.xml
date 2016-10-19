@@ -1,156 +1,156 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:orientation="vertical"
-             android:layout_width="fill_parent"
-             android:layout_height="fill_parent">
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
 
-	<Button
-			style="@style/text.large.button"
-			android:id="@+id/menu_button"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/level_name"
-			android:onClick="pause"/>
+    <Button
+        style="@style/text.large.button"
+        android:id="@+id/menu_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/level_name"
+        android:onClick="pause" />
 
-	<ToggleButton
-			style="@style/text.large.button.toggle"
-			android:id="@+id/reset_time_button"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:textOn="@string/rewind_time"
-			android:textOff="@string/rewind_time"
-			android:onClick="resetTime"
-			android:layout_alignParentBottom="true"/>
+    <ToggleButton
+        style="@style/text.large.button.toggle"
+        android:id="@+id/reset_time_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textOn="@string/rewind_time"
+        android:textOff="@string/rewind_time"
+        android:onClick="resetTime"
+        android:layout_alignParentBottom="true" />
 
-	<com.piguy.Temporal_Bot.GameView
-			android:id="@+id/game_view"
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent"
-			android:layout_gravity="center"
-			android:layout_above="@id/reset_time_button"
-			android:layout_below="@id/menu_button"/>
+    <com.piguy.Temporal_Bot.GameView
+        android:id="@+id/game_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center"
+        android:layout_above="@id/reset_time_button"
+        android:layout_below="@id/menu_button" />
 
-	<LinearLayout
-			android:id="@+id/pause_layout"
-			android:orientation="vertical"
-			android:gravity="center"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:background="@drawable/background_darkened"
-			android:clickable="true"
-			android:visibility="gone">
+    <LinearLayout
+        android:id="@+id/pause_layout"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background_darkened"
+        android:clickable="true"
+        android:visibility="gone">
 
-		<Button
-				style="@style/text.large.button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/button_resume"
-				android:onClick="resume"
-				android:layout_margin="@dimen/button_spacing"/>
+        <Button
+            style="@style/text.large.button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_resume"
+            android:onClick="resume"
+            android:layout_margin="@dimen/button_spacing" />
 
-		<Button
-				style="@style/text.large.button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/button_restart"
-				android:onClick="restart"
-				android:layout_margin="@dimen/button_spacing"/>
+        <Button
+            style="@style/text.large.button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_restart"
+            android:onClick="restart"
+            android:layout_margin="@dimen/button_spacing" />
 
-		<Button
-				style="@style/text.large.button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/button_back"
-				android:onClick="back"
-				android:layout_margin="@dimen/button_spacing"/>
+        <Button
+            style="@style/text.large.button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_back"
+            android:onClick="back"
+            android:layout_margin="@dimen/button_spacing" />
 
-	</LinearLayout>
+    </LinearLayout>
 
-	<LinearLayout
-			android:id="@+id/completed_layout"
-			android:orientation="vertical"
-			android:gravity="center"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:background="@drawable/background_darkened"
-			android:clickable="true"
-			android:visibility="gone">
+    <LinearLayout
+        android:id="@+id/completed_layout"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background_darkened"
+        android:clickable="true"
+        android:visibility="gone">
 
-		<LinearLayout
-				android:background="@drawable/button_active"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:padding="@dimen/button_spacing">
+        <LinearLayout
+            android:background="@drawable/button_active"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/button_spacing">
 
-			<ImageView
-					android:id="@+id/completed_image_view"
-					android:background="@drawable/star_incomplete"
-					android:layout_width="@dimen/star_size"
-					android:layout_height="@dimen/star_size"
-					android:contentDescription="@string/star_completion"/>
+            <ImageView
+                android:id="@+id/completed_image_view"
+                android:background="@drawable/star_incomplete"
+                android:layout_width="@dimen/star_size"
+                android:layout_height="@dimen/star_size"
+                android:contentDescription="@string/star_completion" />
 
-			<ImageView
-					android:id="@+id/time_image_view"
-					android:background="@drawable/star_incomplete"
-					android:layout_width="@dimen/star_size"
-					android:layout_height="@dimen/star_size"
-					android:contentDescription="@string/star_time"/>
+            <ImageView
+                android:id="@+id/time_image_view"
+                android:background="@drawable/star_incomplete"
+                android:layout_width="@dimen/star_size"
+                android:layout_height="@dimen/star_size"
+                android:contentDescription="@string/star_time" />
 
-			<ImageView
-					android:id="@+id/robots_image_view"
-					android:background="@drawable/star_incomplete"
-					android:layout_width="@dimen/star_size"
-					android:layout_height="@dimen/star_size"
-					android:contentDescription="@string/star_robots"/>
+            <ImageView
+                android:id="@+id/robots_image_view"
+                android:background="@drawable/star_incomplete"
+                android:layout_width="@dimen/star_size"
+                android:layout_height="@dimen/star_size"
+                android:contentDescription="@string/star_robots" />
 
-		</LinearLayout>
+        </LinearLayout>
 
-		<Button
-				style="@style/text.large.button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/button_restart"
-				android:onClick="restart"
-				android:layout_margin="@dimen/button_spacing"/>
+        <Button
+            style="@style/text.large.button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_restart"
+            android:onClick="restart"
+            android:layout_margin="@dimen/button_spacing" />
 
-		<Button
-				style="@style/text.large.button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/button_back"
-				android:onClick="back"
-				android:layout_margin="@dimen/button_spacing"/>
+        <Button
+            style="@style/text.large.button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_back"
+            android:onClick="back"
+            android:layout_margin="@dimen/button_spacing" />
 
-	</LinearLayout>
+    </LinearLayout>
 
-	<LinearLayout
-			android:id="@+id/instruction_layout"
-			android:orientation="vertical"
-			android:gravity="center"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:background="@drawable/background_darkened"
-			android:clickable="true"
-			android:visibility="gone">
+    <LinearLayout
+        android:id="@+id/instruction_layout"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background_darkened"
+        android:clickable="true"
+        android:visibility="gone">
 
-		<TextView
-				style="@style/text.medium"
-				android:id="@+id/instruction_view"
-				android:background="@drawable/button_active"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_margin="@dimen/button_spacing"
-				android:gravity="center"/>
+        <TextView
+            style="@style/text.medium"
+            android:id="@+id/instruction_view"
+            android:background="@drawable/button_active"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/button_spacing"
+            android:gravity="center" />
 
-		<Button
-				style="@style/text.large.button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/button_continue"
-				android:onClick="hideInstruction"
-				android:layout_margin="@dimen/button_spacing"/>
+        <Button
+            style="@style/text.large.button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_continue"
+            android:onClick="hideInstruction"
+            android:layout_margin="@dimen/button_spacing" />
 
-	</LinearLayout>
+    </LinearLayout>
 
 </RelativeLayout>
 

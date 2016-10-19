@@ -1,27 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<style name="text">
-		<item name="android:textColor">@color/text_active</item>
-	</style>
-	<style name="text.small" parent="android:TextAppearance.DeviceDefault.Small">
-		<item name="android:textColor">@color/text_active</item>
-	</style>
-	<style name="text.medium" parent="android:TextAppearance.DeviceDefault.Medium"/>
-	<style name="text.medium.button">
-		<item name="android:textColor">@color/button</item>
-		<item name="android:background">@drawable/button</item>
-		<item name="android:paddingLeft">@dimen/button_text_padding</item>
-		<item name="android:paddingRight">@dimen/button_text_padding</item>
-	</style>
-	<style name="text.large" parent="android:TextAppearance.DeviceDefault.Large"/>
-	<style name="text.large.button">
-		<item name="android:textColor">@color/button</item>
-		<item name="android:background">@drawable/button</item>
-		<item name="android:paddingLeft">@dimen/button_text_padding</item>
-		<item name="android:paddingRight">@dimen/button_text_padding</item>
-	</style>
-	<style name="text.large.button.toggle">
-		<item name="android:background">@drawable/toggle_button</item>
-		<item name="android:textColor">@color/toggle_button</item>
-	</style>
+
+    <style name="text">
+        <item name="android:textColor">@color/text_active</item>
+    </style>
+
+    <style name="text.small" parent="android:TextAppearance.DeviceDefault.Small">
+        <item name="android:textColor">@color/text_active</item>
+    </style>
+
+    <style name="text.medium" parent="android:TextAppearance.DeviceDefault.Medium" />
+
+    <style name="text.medium.button">
+        <item name="android:textColor">@color/button</item>
+        <item name="android:background">@drawable/button</item>
+        <item name="android:paddingLeft">@dimen/button_text_padding</item>
+        <item name="android:paddingRight">@dimen/button_text_padding</item>
+    </style>
+
+    <style name="text.large" parent="android:TextAppearance.DeviceDefault.Large" />
+
+    <style name="text.large.button">
+        <item name="android:textColor">@color/button</item>
+        <item name="android:background">@drawable/button</item>
+        <item name="android:paddingLeft">@dimen/button_text_padding</item>
+        <item name="android:paddingRight">@dimen/button_text_padding</item>
+    </style>
+
+    <style name="text.large.button.toggle">
+        <item name="android:background">@drawable/toggle_button</item>
+        <item name="android:textColor">@color/toggle_button</item>
+    </style>
 </resources>

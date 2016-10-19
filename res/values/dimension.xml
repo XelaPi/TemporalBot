@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<dimen name="button_spacing">15dp</dimen>
-	<dimen name="button_text_padding">30dp</dimen>
-	<dimen name="star_size">40dp</dimen>
-	<dimen name="rewind_icon_size">15dp</dimen>
-	<dimen name="rewind_text_size">8dp</dimen>
-	<dimen name="rewind_timeline_padding">20dp</dimen>
-	<dimen name="rewind_timeline_height">40dp</dimen>
-	<dimen name="thumbnail_width">100dp</dimen>
-	<dimen name="thumbnail_height">150dp</dimen>
-	<dimen name="board_padding">10dp</dimen>
+    <dimen name="button_spacing">15dp</dimen>
+    <dimen name="button_text_padding">30dp</dimen>
+    <dimen name="star_size">40dp</dimen>
+    <dimen name="rewind_icon_size">15dp</dimen>
+    <dimen name="rewind_text_size">8dp</dimen>
+    <dimen name="rewind_timeline_padding">20dp</dimen>
+    <dimen name="rewind_timeline_height">40dp</dimen>
+    <dimen name="thumbnail_width">100dp</dimen>
+    <dimen name="thumbnail_height">150dp</dimen>
+    <dimen name="board_padding">10dp</dimen>
 </resources>

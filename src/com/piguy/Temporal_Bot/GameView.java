@@ -19,33 +19,33 @@ import java.util.TimerTask;
  */
 public class GameView extends UpdateView {
 
-	public Board board;
-	private Paint paint;
+    public Board board;
+    private Paint paint;
 
-	public GameView(Context context, AttributeSet attrs) {
-		super(context, attrs);
+    public GameView(Context context, AttributeSet attrs) {
+        super(context, attrs);
 
-		paint = new Paint();
+        paint = new Paint();
 
-		board = new Board(context);
-	}
+        board = new Board(context);
+    }
 
-	/**
-	 * Paint the board
-	 *
-	 * @param canvas canvas to draw to
-	 */
-	@Override
-	public void paint(Canvas canvas) {
-		super.paint(canvas);
-		board.drawBoard(canvas, paint);
-	}
+    /**
+     * Paint the board
+     *
+     * @param canvas canvas to draw to
+     */
+    @Override
+    public void paint(Canvas canvas) {
+        super.paint(canvas);
+        board.drawBoard(canvas, paint);
+    }
 
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-		super.surfaceChanged(holder, format, width, height);
-		board.initializeBitmaps(width, height, paint);
-	}
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        super.surfaceChanged(holder, format, width, height);
+        board.initializeBitmaps(width, height, paint);
+    }
 
-	private static final String LOG_TAG = "GameView";
+    private static final String LOG_TAG = "GameView";
 }

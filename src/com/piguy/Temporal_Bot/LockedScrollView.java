@@ -12,17 +12,17 @@ import android.widget.ScrollView;
  */
 public class LockedScrollView extends ScrollView {
 
-	public LockedScrollView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-	}
+    public LockedScrollView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-	@Override
-	public boolean onTouchEvent(MotionEvent motionEvent) {
-		switch (motionEvent.getAction()) {
-			case MotionEvent.ACTION_DOWN:
-				return false;
-			default:
-				return super.onTouchEvent(motionEvent);
-		}
-	}
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        switch (motionEvent.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                return false;
+            default:
+                return super.onTouchEvent(motionEvent);
+        }
+    }
 }
